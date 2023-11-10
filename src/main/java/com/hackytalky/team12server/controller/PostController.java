@@ -30,7 +30,6 @@ public class PostController {
     public PostDto.Details getPostDetails(@PathVariable Long postId,
                                           @RequestParam Double lat,
                                           @RequestParam Double lon) {
-        System.out.println(lat + ", " + lon);
         return postService.findPostDetails(postId, lat, lon);
     }
 

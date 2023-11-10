@@ -12,7 +12,6 @@ import com.hackytalky.team12server.entity.User;
 import com.hackytalky.team12server.repository.PostRepository;
 import com.hackytalky.team12server.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -74,8 +73,9 @@ public class PostService {
         return postRepository.save(post).getPostId();
     }
 
-    public List<RecommendedPostDto> findRecommendPosts(Long userId) {
+    public List<RecommendedPostDto> findAllPosts(Long userId) {
         List<Post> posts = postRepository.findByCompletedFalse();
+
         return posts.stream()
                 .map(post -> {
                     User user = post.getUser();
@@ -84,5 +84,81 @@ public class PostService {
                     return RecommendedPostDto.of(post, userInfo, timeRange);
                 })
                 .toList();
+    }
+
+    public List<RecommendedPostDto> findRecommendedPosts(Long userId, Route.postRequest postRequest) {
+        List<Post> posts = postRepository.findByCompletedFalse();
+        posts = posts.stream()
+                .filter(post -> checkDistance(
+                        postRequest.getDepartureLat(),
+                        postRequest.getDepartureLon(),
+                        post.getDepartLat(),
+                        post.getDepartLon())
+                )
+                .filter(post -> checkDirection(
+                        postRequest.getDepartureLat(),
+                        postRequest.getDepartureLon(),
+                        postRequest.getDestinationLat(),
+                        postRequest.getDestinationLon(),
+                        post.getDepartLat(),
+                        post.getDepartLon(),
+                        post.getDestiLat(),
+                        post.getDestiLon()
+                ))
+                .toList();
+
+
+        return posts.stream()
+                .map(post -> {
+                    User user = post.getUser();
+                    UserDto.Info userInfo = UserDto.Info.fromUser(user);
+                    PostDto.TimeRange timeRange = PostDto.TimeRange.fromPost(post);
+                    return RecommendedPostDto.of(post, userInfo, timeRange);
+                })
+                .toList();
+    }
+
+    private boolean checkDirection(Double lat1, Double lon1, Double lat2, Double lon2,
+                                   Double lat3, Double lon3, Double lat4, Double lon4) {
+        return calculateAngle(lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4) > 60;
+    }
+
+    private static double calculateAngle(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+        double slope1 = (y2 - y1) / (x2 - x1);
+        double slope2 = (y4 - y3) / (x4 - x3);
+
+        double slopeDifference = Math.atan((slope2 - slope1) / (1 + slope1 * slope2));
+
+        double angle = Math.toDegrees(slopeDifference);
+
+        if (angle < 0) {
+            angle += 180;
+        }
+
+        return angle;
+    }
+
+
+    private static boolean checkDistance(double lat1, double lon1, double lat2, double lon2) {
+        double distance = calculateDistance(lat1, lon1, lat2, lon2);
+        return distance < 0.5d;
+    }
+
+    private static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371;
+
+        double lat1Rad = Math.toRadians(lat1);
+        double lon1Rad = Math.toRadians(lon1);
+        double lat2Rad = Math.toRadians(lat2);
+        double lon2Rad = Math.toRadians(lon2);
+
+        double dlon = lon2Rad - lon1Rad;
+        double dlat = lat2Rad - lat1Rad;
+        double a = Math.sin(dlat / 2) * Math.sin(dlat / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                        Math.sin(dlon / 2) * Math.sin(dlon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
     }
 }

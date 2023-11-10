@@ -43,12 +43,12 @@ public class UserController {
     @PostMapping("/{userId}/recommended-post")
     public List<RecommendedPostDto> getPosts(@PathVariable Long userId,
                                              @RequestBody Route.postRequest postRequest) {
-        return postService.findRecommendPosts(userId);
+        return postService.findRecommendedPosts(userId, postRequest);
     }
 
     @GetMapping("/{userId}/recommended-post")
     public List<RecommendedPostDto> getPosts(@PathVariable Long userId) {
-        return postService.findRecommendPosts(userId);
+        return postService.findAllPosts(userId);
     }
 
     @GetMapping("/{userId}/taxichat")
