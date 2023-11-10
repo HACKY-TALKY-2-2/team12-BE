@@ -20,8 +20,8 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long postId;
 
-    @Builder.Default
-    private Boolean completed = false;
+    @ColumnDefault("0")
+    private Integer completed;
 
     private String departureAddress;
 

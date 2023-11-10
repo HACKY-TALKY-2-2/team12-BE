@@ -27,6 +27,8 @@ public class User {
 
     private String job;
 
+    private String company;
+
     private String phoneNumber;
 
     private Integer yearOfExperience;

@@ -1,10 +1,7 @@
 package com.hackytalky.team12server.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,10 +9,13 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString
+@Builder
 public class Review {
     @Id
-    private String reviewId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long reviewId;
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
